@@ -10,6 +10,6 @@ target_include_directories(mcpelauncher-extract-lib PUBLIC include/)
 target_include_directories(mcpelauncher-extract-lib PRIVATE ${LIBZIP_INCLUDE_DIRS})
 target_link_libraries(mcpelauncher-extract-lib ${LIBZIP_LIBRARIES})
 
-add_executable(mcpelauncher-extract src/main.cpp)
+add_executable(mcpelauncher-extract src/main.cpp include/mcpelauncher/minecraft_extract_utils.h)
 target_link_libraries(mcpelauncher-extract mcpelauncher-extract-lib)
 

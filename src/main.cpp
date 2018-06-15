@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <mcpelauncher/zip_extractor.h>
+#include <mcpelauncher/minecraft_extract_utils.h>
 
 #define CLEAR_LINE "\033[2K\r"
 
@@ -9,13 +10,14 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
-    ZipExtractor extractor (argv[1]);
+    std::string inPath = argv[1];
     std::string outPath = argv[2];
+
+    ZipExtractor extractor (inPath);
     int lastPercentageReported = -1;
-    extractor.extractTo([outPath](const char* filename, std::string& outName) {
-        outName = outPath + "/" + filename;
-        return true;
-    }, [&lastPercentageReported](size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
+    printf("Collecting files to extract");
+    extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath), [&lastPercentageReported]
+            (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
         int percentage = (int) (current * 100 / max);
         if (percentage != lastPercentageReported) {
             printf(CLEAR_LINE "Extracting: %i%%", percentage);
