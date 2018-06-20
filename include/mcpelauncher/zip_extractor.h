@@ -53,6 +53,8 @@ public:
     ~ZipExtractor() { zip_close(archive); }
 
 
+    std::vector<char> readFile(std::string const& filename);
+
     void extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
                    std::function<void (size_t current, size_t max, FileHandle const& entry,
                                        size_t entryCurrent, size_t entryMax)> const& progress);

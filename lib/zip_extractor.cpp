@@ -82,3 +82,20 @@ void ZipExtractor::extractTo(std::function<bool (const char* filename, std::stri
     }
     return extractTo(files, size, progress);
 }
+
+std::vector<char> ZipExtractor::readFile(std::string const& filename) {
+    struct zip_stat s;
+    if (zip_stat(archive, filename.c_str(), 0, &s) != 0)
+        throw ZipExtractionError("Failed to stat the specified file");
+    FileHandle handle (zip_fopen(archive, filename.c_str(), 0));
+    if (!handle)
+        throw ZipExtractionError("Failed to open the specified file");
+    std::vector<char> ret (s.size);
+    for (size_t o = 0; o < s.size; ) {
+        ssize_t r = zip_fread(handle, &ret.data()[o], s.size - o);
+        if (r < 0)
+            throw ZipExtractionError("Read failed");
+        o += r;
+    }
+    return ret;
+}
