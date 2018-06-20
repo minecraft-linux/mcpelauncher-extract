@@ -1,6 +1,7 @@
 #include <mcpelauncher/zip_extractor.h>
 #include <cstring>
 #include <sys/stat.h>
+#include <errno.h>
 
 ZipExtractor::ZipExtractor(std::string const& path) {
     int err = 0;
@@ -10,7 +11,14 @@ ZipExtractor::ZipExtractor(std::string const& path) {
 }
 
 void ZipExtractor::mkdirRecursive(char* path, size_t len, bool createThisDir) {
-    char* a = (char*) memrchr(path, '/', len);
+    char* a = NULL;
+    for (ssize_t i = len - 1; i >= 0; i--) {
+        if (path[i] == '/') {
+            a = (char*) &path[i];
+            break;
+        }
+    }
+
     if (createThisDir && (mkdir(path, 0755) == 0 || errno == EEXIST))
         return;
     if (a != nullptr) {
