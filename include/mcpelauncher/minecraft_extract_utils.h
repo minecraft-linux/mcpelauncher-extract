@@ -24,6 +24,9 @@ public:
         } else if (strcmp(filename, "res/raw/xboxservices.config") == 0) {
             outName = dir + "assets/xboxservices.config";
             return true;
+        } else if (strcmp(filename, "res/drawable-xxxhdpi-v4/icon.png") == 0) {
+            outName = dir + "assets/icon.png";
+            return true;
         } else if (nameLen == 4 + arch.length() + 18 &&
                 memcmp(filename, "lib/", 4) == 0 &&
                 memcmp(&filename[4], arch.data(), arch.length()) == 0 &&
