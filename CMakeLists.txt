@@ -1,6 +1,8 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.1)
 
 project(mcpelauncher-extract LANGUAGES CXX)
+
+set (CMAKE_CXX_STANDARD 11)
 
 set(LIBZIP_INCLUDE_DIRS )
 set(LIBZIP_LIBRARIES zip)
