@@ -25,7 +25,7 @@ static void checkFolder(std::string const& path) {
         exit(1);
     }
     struct dirent* de;
-    while (de = readdir(dir)) {
+    while ((de = readdir(dir)) != nullptr) {
         if (de->d_name[0] == '.')
             continue;
         printf("Warning: Directory is not empty\n");
