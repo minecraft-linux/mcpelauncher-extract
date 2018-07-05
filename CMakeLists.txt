@@ -2,8 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 
 project(mcpelauncher-extract LANGUAGES CXX)
 
-set(LIBZIP_INCLUDE_DIRS )
-set(LIBZIP_LIBRARIES zip)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+find_package(Zip REQUIRED)
 
 add_library(mcpelauncher-extract-lib include/mcpelauncher/zip_extractor.h lib/zip_extractor.cpp)
 target_include_directories(mcpelauncher-extract-lib PUBLIC include/)
