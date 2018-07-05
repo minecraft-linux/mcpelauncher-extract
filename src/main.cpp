@@ -3,6 +3,7 @@
 #include <mcpelauncher/minecraft_extract_utils.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
 
 #define CLEAR_LINE "\033[2K\r"
 
