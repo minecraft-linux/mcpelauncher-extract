@@ -36,7 +36,7 @@ static void checkFolder(std::string const& path) {
 
 int main(int argc, const char* argv[]) {
     if (argc != 3) {
-        printf("mcpelauncher-extract <apk-file> <destination>");
+        printf("mcpelauncher-extract <apk-file> <destination>\n");
         return 1;
     }
 
