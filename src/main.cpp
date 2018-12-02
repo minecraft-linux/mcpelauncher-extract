@@ -48,7 +48,12 @@ int main(int argc, const char* argv[]) {
     ZipExtractor extractor (inPath);
     int lastPercentageReported = -1;
     printf("Collecting files to extract");
-    extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath), [&lastPercentageReported]
+#ifdef __arm__
+    std::string arch = "armeabi-v7a";
+#else
+    std::string arch = "x86";
+#endif
+    extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath, arch), [&lastPercentageReported]
             (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
         int percentage = (int) (current * 100 / max);
         if (percentage != lastPercentageReported) {
