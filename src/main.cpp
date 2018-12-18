@@ -63,5 +63,7 @@ int main(int argc, const char* argv[]) {
         lastPercentageReported = percentage;
     });
     printf(CLEAR_LINE "Done!\n");
+    if (!MinecraftExtractUtils::checkMinecraftLibFile(outPath))
+        printf("WARNING: libminecraftpe.so was not extracted. The specified APK is incompatible with the launcher.");
     return 0;
 }

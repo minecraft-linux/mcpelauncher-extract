@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 #include <cstring>
+#include <unistd.h>
 
 class MinecraftExtractUtils {
 
@@ -35,6 +36,13 @@ public:
             return true;
         }
         return false;
+    }
+
+
+    static bool checkMinecraftLibFile(std::string const& dir) {
+        if (!dir.empty() && dir[dir.length() - 1] != '/')
+            return checkMinecraftLibFile(dir + "/");
+        return access((dir + "libs/libminecraftpe.so").c_str(), R_OK) == 0;
     }
 
 };
