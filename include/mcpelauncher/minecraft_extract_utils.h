@@ -34,6 +34,12 @@ public:
                 memcmp(&filename[4 + arch.length()], "/libminecraftpe.so", 18) == 0) {
             outName = dir + "libs/libminecraftpe.so";
             return true;
+        } else if (nameLen == 4 + arch.length() + 20 &&
+                memcmp(filename, "lib/", 4) == 0 &&
+                memcmp(&filename[4], arch.data(), arch.length()) == 0 &&
+                memcmp(&filename[4 + arch.length()], "/libgnustl_shared.so", 20) == 0) {
+            outName = dir + "libs/libgnustl_shared.so";
+            return true;
         }
         return false;
     }
