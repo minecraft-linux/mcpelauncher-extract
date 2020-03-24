@@ -48,7 +48,7 @@ int main(int argc, const char* argv[]) {
     ZipExtractor extractor (inPath);
     int lastPercentageReported = -1;
     printf("Collecting files to extract");
-#ifdef __arm__
+#if defined(__arm__) && (!defined(FORCE_ARM) || FORCE_ARM == 1 )
     std::string arch = "armeabi-v7a";
 #else
     std::string arch = "x86";
