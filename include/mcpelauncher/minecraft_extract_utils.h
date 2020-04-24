@@ -23,7 +23,7 @@ public:
             outName = dir + filename;
             return true;
         } else if (nameLen > 8 && memcmp(filename, "res/raw/", 8) == 0) {
-            outName = dir + (filename + 8);
+            outName = dir + "assets/" + (filename + 8);
             return true;
         } else if (strcmp(filename, "res/drawable-xxxhdpi-v4/icon.png") == 0) {
             outName = dir + "assets/icon.png";
