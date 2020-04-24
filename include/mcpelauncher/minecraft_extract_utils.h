@@ -9,7 +9,7 @@ class MinecraftExtractUtils {
 
 public:
     static std::function<bool (const char* filename, std::string& outName)>
-    filterMinecraftFiles(std::string const& dir, std::string const& arch = "x86") {
+    filterMinecraftFiles(std::string const& dir, std::string const& arch = "x86_64") {
         if (!dir.empty() && dir[dir.length() - 1] != '/')
             return filterMinecraftFiles(dir + "/", arch);
         using namespace std::placeholders;
@@ -22,23 +22,14 @@ public:
         if (nameLen >= 7 && memcmp(filename, "assets/", 7) == 0) {
             outName = dir + filename;
             return true;
-        } else if (strcmp(filename, "res/raw/xboxservices.config") == 0) {
-            outName = dir + "assets/xboxservices.config";
+        } else if (nameLen > 8 && memcmp(filename, "res/raw/", 8) == 0) {
+            outName = dir + (filename + 8);
             return true;
         } else if (strcmp(filename, "res/drawable-xxxhdpi-v4/icon.png") == 0) {
             outName = dir + "assets/icon.png";
             return true;
-        } else if (nameLen == 4 + arch.length() + 18 &&
-                memcmp(filename, "lib/", 4) == 0 &&
-                memcmp(&filename[4], arch.data(), arch.length()) == 0 &&
-                memcmp(&filename[4 + arch.length()], "/libminecraftpe.so", 18) == 0) {
-            outName = dir + "libs/libminecraftpe.so";
-            return true;
-        } else if (nameLen == 4 + arch.length() + 20 &&
-                memcmp(filename, "lib/", 4) == 0 &&
-                memcmp(&filename[4], arch.data(), arch.length()) == 0 &&
-                memcmp(&filename[4 + arch.length()], "/libgnustl_shared.so", 20) == 0) {
-            outName = dir + "libs/libgnustl_shared.so";
+        } else if (nameLen > 4 && memcmp(filename, "lib/", 4) == 0) {
+            outName = dir + filename;
             return true;
         }
         return false;

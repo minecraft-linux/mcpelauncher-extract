@@ -51,7 +51,7 @@ int main(int argc, const char* argv[]) {
 #if defined(__arm__) && (!defined(FORCE_ARM) || FORCE_ARM == 1 )
     std::string arch = "armeabi-v7a";
 #else
-    std::string arch = "x86";
+    std::string arch = "x86_64";
 #endif
     extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath, arch), [&lastPercentageReported]
             (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
