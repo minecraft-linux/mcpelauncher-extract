@@ -39,7 +39,20 @@ public:
     static bool checkMinecraftLibFile(std::string const& dir) {
         if (!dir.empty() && dir[dir.length() - 1] != '/')
             return checkMinecraftLibFile(dir + "/");
-        return access((dir + "libs/libminecraftpe.so").c_str(), R_OK) == 0;
+    return 0
+#ifdef __x86_64__
+        || access((dir + "lib/x86_64/libminecraftpe.so").c_str(), R_OK) == 0
+#endif
+#if defined(__i386__) || defined(__x86_64__)
+        || access((dir + "lib/x86/libminecraftpe.so").c_str(), R_OK) == 0
+#endif
+#ifdef __aarch64__
+        || access((dir + "lib/arm64-v8a/libminecraftpe.so").c_str(), R_OK) == 0
+#endif
+#if defined(__arm__) || defined(__aarch64__)
+        || access((dir + "lib/armeabi-v7a/libminecraftpe.so").c_str(), R_OK) == 0
+#endif
+        ;
     }
 
 };
