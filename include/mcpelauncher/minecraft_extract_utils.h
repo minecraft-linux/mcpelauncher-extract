@@ -9,15 +9,15 @@ class MinecraftExtractUtils {
 
 public:
     static std::function<bool (const char* filename, std::string& outName)>
-    filterMinecraftFiles(std::string const& dir, std::string const& arch = "x86_64") {
+    filterMinecraftFiles(std::string const& dir) {
         if (!dir.empty() && dir[dir.length() - 1] != '/')
-            return filterMinecraftFiles(dir + "/", arch);
+            return filterMinecraftFiles(dir + "/");
         using namespace std::placeholders;
-        return std::bind(&MinecraftExtractUtils::filterMinecraftFile, _1, _2, dir, arch);
+        return std::bind(&MinecraftExtractUtils::filterMinecraftFile, _1, _2, dir);
     }
 
     static bool filterMinecraftFile(const char* filename, std::string& outName,
-                                    std::string const& dir, std::string const& arch) {
+                                    std::string const& dir) {
         size_t nameLen = strlen(filename);
         if (nameLen >= 7 && memcmp(filename, "assets/", 7) == 0) {
             outName = dir + filename;
