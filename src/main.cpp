@@ -35,33 +35,31 @@ static void checkFolder(std::string const& path) {
 }
 
 int main(int argc, const char* argv[]) {
-    if (argc != 3) {
-        printf("mcpelauncher-extract <apk-file> <destination>\n");
+    if (argc < 3) {
+        printf("mcpelauncher-extract <apk-file> [<apk-file>+] <destination>\n");
         return 1;
     }
 
-    std::string inPath = argv[1];
-    std::string outPath = argv[2];
+    std::string outPath = argv[argc - 1];
 
     checkFolder(outPath);
 
-    ZipExtractor extractor (inPath);
     int lastPercentageReported = -1;
-    printf("Collecting files to extract");
-#if defined(__arm__) && (!defined(FORCE_ARM) || FORCE_ARM == 1 )
-    std::string arch = "armeabi-v7a";
-#else
-    std::string arch = "x86_64";
-#endif
-    extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath, arch), [&lastPercentageReported]
-            (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
-        int percentage = (int) (current * 100 / max);
-        if (percentage != lastPercentageReported) {
-            printf(CLEAR_LINE "Extracting: %i%%", percentage);
-            fflush(stdout);
-        }
-        lastPercentageReported = percentage;
-    });
+
+    for (int i = 1; i < argc - 1; ++i) {
+        std::string inPath = argv[i];
+        ZipExtractor extractor (inPath);
+        printf("Collecting files to extract file %d/%d", i - 1, argc - 2);
+        extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath), [&lastPercentageReported, i = i - 1, n = argc - 2]
+                (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
+            int percentage = (int) (current * i * 100 / max / n);
+            if (percentage != lastPercentageReported) {
+                printf(CLEAR_LINE "Extracting: %i%%", percentage);
+                fflush(stdout);
+            }
+            lastPercentageReported = percentage;
+        });
+    }
     printf(CLEAR_LINE "Done!\n");
     if (!MinecraftExtractUtils::checkMinecraftLibFile(outPath))
         printf("WARNING: libminecraftpe.so was not extracted. The specified APK is incompatible with the launcher.");
