@@ -50,9 +50,9 @@ int main(int argc, const char* argv[]) {
         std::string inPath = argv[i];
         ZipExtractor extractor (inPath);
         printf("Collecting files to extract file %d/%d", i - 1, argc - 2);
-        extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath), [&lastPercentageReported, i = i - 1, n = argc - 2]
+        extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath), [&lastPercentageReported, i, argc]
                 (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
-            int percentage = (int) (current * i * 100 / max / n);
+            int percentage = (int) (current * (i - 1) * 100 / max / (argc - 2));
             if (percentage != lastPercentageReported) {
                 printf(CLEAR_LINE "Extracting: %i%%", percentage);
                 fflush(stdout);
