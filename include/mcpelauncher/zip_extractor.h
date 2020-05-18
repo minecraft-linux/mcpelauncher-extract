@@ -4,6 +4,7 @@
 #include <functional>
 #include <zip.h>
 #include <vector>
+#include <stdexcept>
 
 struct ZipExtractionError : public std::runtime_error {
     explicit ZipExtractionError(std::string const& e) : std::runtime_error(e) {}
