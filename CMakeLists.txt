@@ -15,3 +15,4 @@ target_link_libraries(mcpelauncher-extract-lib ${LIBZIP_LIBRARIES})
 add_executable(mcpelauncher-extract src/main.cpp include/mcpelauncher/minecraft_extract_utils.h)
 target_link_libraries(mcpelauncher-extract mcpelauncher-extract-lib)
 
+install(TARGETS mcpelauncher-extract DESTINATION bin)
