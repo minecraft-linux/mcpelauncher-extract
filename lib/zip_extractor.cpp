@@ -1,5 +1,6 @@
 #include <mcpelauncher/zip_extractor.h>
 #include <cstring>
+#include <vector>
 #include <sys/stat.h>
 #include <errno.h>
 
@@ -36,25 +37,38 @@ void ZipExtractor::extractFile(zip_file* entry, std::string const& to, size_t fi
     mkdirRecursive(to);
 
     FILE* out = fopen(to.c_str(), "wb");
-    if (!out)
-        throw ZipExtractionError("Failed to open output file");
+    if (!out) {
+        auto err = errno;
+        auto strerr = err != 0 ? strerror(err) : "Unknown";
+        throw ZipExtractionError("Failed to open file " + to + " for writing: " + (strerr ? strerr : "Unknown"));
+    }
 
     progress(0, fileSize);
     zip_int64_t r;
     size_t total = 0;
     while ((r = zip_fread(entry, buf, bufSize)) > 0) {
-        fwrite(buf, sizeof(char), (size_t) r, out);
+        auto fr = fwrite(buf, sizeof(char), (size_t) r, out);
+        if(fr != r) {
+            auto err = errno;
+            auto strerr = err != 0 ? strerror(err) : "Unknown";
+            throw ZipExtractionError("Failed to write to file " + to + ": " + (strerr ? strerr : "Unknown"));
+        }
         total += r;
         progress(total, fileSize);
     }
     progress(total, fileSize);
-    fclose(out);
+    if(fclose(out) != 0) {
+        auto err = errno;
+        auto strerr = err != 0 ? strerror(err) : "Unknown";
+        throw ZipExtractionError("Failed to close file " + to + ": " + (strerr ? strerr : "Unknown"));
+    }
 }
 
 void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> const& files, size_t totalSize,
                              std::function<void (size_t current, size_t max, FileHandle const& entry,
                                                  size_t entryCurrent, size_t entryMax)> const& progress) {
-    char* buf = new char[DEFAULT_BUF_SIZE];
+    std::vector<char> vbuf(DEFAULT_BUF_SIZE);
+    char* buf = vbuf.data();
     struct zip_stat zs;
     size_t current = 0;
     for (auto const& file : files) {
@@ -69,7 +83,6 @@ void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> c
         }, buf, DEFAULT_BUF_SIZE);
         current += zs.size;
     }
-    delete[] buf;
 }
 
 void ZipExtractor::extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
