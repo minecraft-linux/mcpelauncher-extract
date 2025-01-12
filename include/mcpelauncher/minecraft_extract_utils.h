@@ -31,6 +31,9 @@ public:
         } else if (nameLen > 4 && memcmp(filename, "lib/", 4) == 0) {
             outName = dir + filename;
             return true;
+        } else if (strcmp(filename, "AndroidManifest.xml") == 0) {
+            outName = dir + filename;
+            return true;
         }
         return false;
     }
