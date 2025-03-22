@@ -9,15 +9,15 @@ class MinecraftExtractUtils {
 
 public:
     static std::function<bool (const char* filename, std::string& outName)>
-    filterMinecraftFiles(std::string const& dir) {
+    filterMinecraftFiles(std::string const& dir, bool includeManifest = true) {
         if (!dir.empty() && dir[dir.length() - 1] != '/')
-            return filterMinecraftFiles(dir + "/");
+            return filterMinecraftFiles(dir + "/", includeManifest);
         using namespace std::placeholders;
-        return std::bind(&MinecraftExtractUtils::filterMinecraftFile, _1, _2, dir);
+        return std::bind(&MinecraftExtractUtils::filterMinecraftFile, _1, _2, dir, includeManifest);
     }
 
     static bool filterMinecraftFile(const char* filename, std::string& outName,
-                                    std::string const& dir) {
+                                    std::string const& dir, bool includeManifest = true) {
         size_t nameLen = strlen(filename);
         if (nameLen >= 7 && memcmp(filename, "assets/", 7) == 0) {
             outName = dir + filename;
@@ -31,7 +31,7 @@ public:
         } else if (nameLen > 4 && memcmp(filename, "lib/", 4) == 0) {
             outName = dir + filename;
             return true;
-        } else if (strcmp(filename, "AndroidManifest.xml") == 0) {
+        } else if (includeManifest && strcmp(filename, "AndroidManifest.xml") == 0) {
             outName = dir + filename;
             return true;
         }
