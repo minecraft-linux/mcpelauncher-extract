@@ -13,6 +13,14 @@ struct ZipExtractionError : public std::runtime_error {
 class ZipExtractor {
 
 public:
+    struct EntryInfo {
+        zip_uint64_t index;
+        std::string zipName;
+        std::string outputName;
+        zip_uint64_t size;
+        zip_uint32_t crc;
+    };
+
     class FileHandle {
 
     private:
@@ -50,11 +58,20 @@ public:
 
     ZipExtractor(zip* archive) : archive(archive) {}
     ZipExtractor(std::string const& path);
+    ZipExtractor(zip_source_t* source);
 
     ~ZipExtractor() { zip_close(archive); }
 
 
     std::vector<char> readFile(std::string const& filename);
+
+    std::vector<EntryInfo> listEntries(std::function<bool (const char* filename, std::string& outName)> const& filter);
+
+    size_t getFilteredSize(std::function<bool (const char* filename, std::string& outName)> const& filter);
+
+    void extractEntries(std::vector<EntryInfo> const& files,
+                        std::function<void (size_t current, size_t max, FileHandle const& entry,
+                                            size_t entryCurrent, size_t entryMax)> const& progress);
 
     void extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
                    std::function<void (size_t current, size_t max, FileHandle const& entry,
