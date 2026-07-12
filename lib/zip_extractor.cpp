@@ -11,6 +11,15 @@ ZipExtractor::ZipExtractor(std::string const& path) {
         throw ZipExtractionError("Failed to open zip " + std::to_string(err));
 }
 
+ZipExtractor::ZipExtractor(zip_source_t* source) {
+    zip_error_t err;
+    archive = zip_open_from_source(source, 0, &err);
+    if (archive == nullptr) {
+        zip_source_free(source);
+        throw ZipExtractionError("Failed to open zip source " + std::string(zip_error_strerror(&err)) + " " + std::to_string(zip_error_code_zip(&err)));
+    }
+}
+
 void ZipExtractor::mkdirRecursive(char* path, size_t len, bool createThisDir) {
     char* a = NULL;
     for (ssize_t i = len - 1; i >= 0; i--) {
@@ -85,23 +94,48 @@ void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> c
     }
 }
 
-void ZipExtractor::extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
-                             std::function<void (size_t current, size_t max, FileHandle const& entry,
-                                                 size_t entryCurrent, size_t entryMax)> const& progress) {
-    std::vector<std::pair<zip_uint64_t, std::string>> files;
+void ZipExtractor::extractEntries(std::vector<EntryInfo> const& files,
+                                  std::function<void (size_t current, size_t max, FileHandle const& entry,
+                                                      size_t entryCurrent, size_t entryMax)> const& progress) {
+    std::vector<std::pair<zip_uint64_t, std::string>> planned;
+    size_t totalSize = 0;
+    planned.reserve(files.size());
+    for (auto const& file : files) {
+        totalSize += (size_t) file.size;
+        planned.emplace_back(file.index, file.outputName);
+    }
+    extractTo(planned, totalSize, progress);
+}
+
+std::vector<ZipExtractor::EntryInfo> ZipExtractor::listEntries(
+        std::function<bool (const char* filename, std::string& outName)> const& filter) {
+    std::vector<EntryInfo> files;
     zip_int64_t n = zip_get_num_entries(archive, 0);
-    size_t size = 0;
     std::string filename;
     struct zip_stat zs;
     for (zip_int64_t i = 0; i < n; i++) {
         if (zip_stat_index(archive, (zip_uint64_t) i, 0, &zs) != 0)
             throw ZipExtractionError("zip_stat_index failed");
         if (filter(zs.name, filename)) {
-            size += zs.size;
-            files.emplace_back((zip_uint64_t) i, filename);
+            files.push_back({(zip_uint64_t) i, zs.name, filename, zs.size, zs.crc});
         }
     }
-    return extractTo(files, size, progress);
+    return files;
+}
+
+size_t ZipExtractor::getFilteredSize(std::function<bool (const char* filename, std::string& outName)> const& filter) {
+    size_t totalSize = 0;
+    auto entries = listEntries(filter);
+    for (auto const& entry : entries)
+        totalSize += (size_t) entry.size;
+    return totalSize;
+}
+
+void ZipExtractor::extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
+                             std::function<void (size_t current, size_t max, FileHandle const& entry,
+                                                 size_t entryCurrent, size_t entryMax)> const& progress) {
+    auto entries = listEntries(filter);
+    return extractEntries(entries, progress);
 }
 
 std::vector<char> ZipExtractor::readFile(std::string const& filename) {
