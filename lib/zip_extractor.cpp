@@ -3,6 +3,13 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+static std::string formatZipError(zip* archive, std::string const& prefix) {
+    zip_error_t* err = zip_get_error(archive);
+    return prefix + ": " + zip_error_strerror(err) +
+           " (zip=" + std::to_string(zip_error_code_zip(err)) +
+           ", sys=" + std::to_string(zip_error_code_system(err)) + ")";
+}
+
 ZipExtractor::ZipExtractor(std::string const& path) {
     int err = 0;
     archive = zip_open(path.c_str(), 0, &err);
@@ -68,10 +75,10 @@ void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> c
     size_t current = 0;
     for (auto const& file : files) {
         if (zip_stat_index(archive, file.first, 0, &zs) != 0)
-            throw ZipExtractionError("zip_stat_index failed");
+            throw ZipExtractionError(formatZipError(archive, "zip_stat_index failed"));
         FileHandle handle (archive, file.first);
         if (handle.get() == nullptr)
-            throw ZipExtractionError("Failed to open file in the zip");
+            throw ZipExtractionError(formatZipError(archive, "zip_fopen_index failed"));
         extractFile(handle, file.second, zs.size, [current, &handle, &progress, totalSize]
                 (size_t fileCurrent, size_t fileMax) {
             progress(current + fileCurrent, totalSize, handle, fileCurrent, fileMax);
@@ -102,7 +109,7 @@ std::vector<ZipExtractor::EntryInfo> ZipExtractor::listEntries(
     struct zip_stat zs;
     for (zip_int64_t i = 0; i < n; i++) {
         if (zip_stat_index(archive, (zip_uint64_t) i, 0, &zs) != 0)
-            throw ZipExtractionError("zip_stat_index failed");
+            throw ZipExtractionError(formatZipError(archive, "zip_stat_index failed"));
         if (filter(zs.name, filename)) {
             files.push_back({(zip_uint64_t) i, zs.name, filename, zs.size, zs.crc});
         }
@@ -128,15 +135,15 @@ void ZipExtractor::extractTo(std::function<bool (const char* filename, std::stri
 std::vector<char> ZipExtractor::readFile(std::string const& filename) {
     struct zip_stat s;
     if (zip_stat(archive, filename.c_str(), 0, &s) != 0)
-        throw ZipExtractionError("Failed to stat the specified file");
+        throw ZipExtractionError(formatZipError(archive, "zip_stat failed for " + filename));
     FileHandle handle (zip_fopen(archive, filename.c_str(), 0));
     if (!handle)
-        throw ZipExtractionError("Failed to open the specified file");
+        throw ZipExtractionError(formatZipError(archive, "zip_fopen failed for " + filename));
     std::vector<char> ret (s.size);
     for (size_t o = 0; o < s.size; ) {
         ssize_t r = zip_fread(handle, &ret.data()[o], s.size - o);
         if (r < 0)
-            throw ZipExtractionError("Read failed");
+            throw ZipExtractionError(formatZipError(archive, "zip_fread failed for " + filename));
         o += r;
     }
     return ret;
