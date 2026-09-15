@@ -68,7 +68,7 @@ void ZipExtractor::extractFile(zip_file* entry, std::string const& to, size_t fi
 }
 
 void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> const& files, size_t totalSize,
-                             std::function<void (size_t current, size_t max, FileHandle const& entry,
+                             std::function<void (size_t current, size_t max, EntryInfo const& entry,
                                                  size_t entryCurrent, size_t entryMax)> const& progress) {
     char* buf = new char[DEFAULT_BUF_SIZE];
     struct zip_stat zs;
@@ -79,9 +79,10 @@ void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> c
         FileHandle handle (archive, file.first);
         if (handle.get() == nullptr)
             throw ZipExtractionError(formatZipError(archive, "zip_fopen_index failed"));
-        extractFile(handle, file.second, zs.size, [current, &handle, &progress, totalSize]
-                (size_t fileCurrent, size_t fileMax) {
-            progress(current + fileCurrent, totalSize, handle, fileCurrent, fileMax);
+        EntryInfo entryInfo {file.first, zs.name, file.second, zs.size, zs.comp_size, zs.crc};
+        extractFile(handle, file.second, zs.size, [current, &progress, totalSize, entryInfo]
+                (size_t fileCurrent, size_t fileMax) mutable {
+            progress(current + fileCurrent, totalSize, entryInfo, fileCurrent, fileMax);
         }, buf, DEFAULT_BUF_SIZE);
         current += zs.size;
     }
@@ -89,7 +90,7 @@ void ZipExtractor::extractTo(std::vector<std::pair<zip_uint64_t, std::string>> c
 }
 
 void ZipExtractor::extractEntries(std::vector<EntryInfo> const& files,
-                                  std::function<void (size_t current, size_t max, FileHandle const& entry,
+                                  std::function<void (size_t current, size_t max, EntryInfo const& entry,
                                                       size_t entryCurrent, size_t entryMax)> const& progress) {
     std::vector<std::pair<zip_uint64_t, std::string>> planned;
     size_t totalSize = 0;
@@ -111,7 +112,7 @@ std::vector<ZipExtractor::EntryInfo> ZipExtractor::listEntries(
         if (zip_stat_index(archive, (zip_uint64_t) i, 0, &zs) != 0)
             throw ZipExtractionError(formatZipError(archive, "zip_stat_index failed"));
         if (filter(zs.name, filename)) {
-            files.push_back({(zip_uint64_t) i, zs.name, filename, zs.size, zs.crc});
+            files.push_back({(zip_uint64_t) i, zs.name, filename, zs.size, zs.comp_size, zs.crc});
         }
     }
     return files;
@@ -126,7 +127,7 @@ size_t ZipExtractor::getFilteredSize(std::function<bool (const char* filename, s
 }
 
 void ZipExtractor::extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
-                             std::function<void (size_t current, size_t max, FileHandle const& entry,
+                             std::function<void (size_t current, size_t max, EntryInfo const& entry,
                                                  size_t entryCurrent, size_t entryMax)> const& progress) {
     auto entries = listEntries(filter);
     return extractEntries(entries, progress);

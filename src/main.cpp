@@ -51,7 +51,7 @@ int main(int argc, const char* argv[]) {
         ZipExtractor extractor (inPath);
         printf("Collecting files to extract file %d/%d", i - 1, argc - 2);
         extractor.extractTo(MinecraftExtractUtils::filterMinecraftFiles(outPath), [&lastPercentageReported, i, argc]
-                (size_t current, size_t max, ZipExtractor::FileHandle const& ent, size_t, size_t) {
+                (size_t current, size_t max, ZipExtractor::EntryInfo const&, size_t, size_t) {
             int percentage = (int) (current * (i - 1) * 100 / max / (argc - 2));
             if (percentage != lastPercentageReported) {
                 printf(CLEAR_LINE "Extracting: %i%%", percentage);

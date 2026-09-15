@@ -18,6 +18,7 @@ public:
         std::string zipName;
         std::string outputName;
         zip_uint64_t size;
+        zip_uint64_t compressedSize;
         zip_uint32_t crc;
     };
 
@@ -51,7 +52,7 @@ private:
                             char* buf, size_t bufSize);
 
     void extractTo(std::vector<std::pair<zip_uint64_t, std::string>> const& files, size_t totalSize,
-                   std::function<void (size_t current, size_t max, FileHandle const& entry,
+                   std::function<void (size_t current, size_t max, EntryInfo const& entry,
                                        size_t entryCurrent, size_t entryMax)> const& progress);
 
 public:
@@ -70,11 +71,11 @@ public:
     size_t getFilteredSize(std::function<bool (const char* filename, std::string& outName)> const& filter);
 
     void extractEntries(std::vector<EntryInfo> const& files,
-                        std::function<void (size_t current, size_t max, FileHandle const& entry,
+                        std::function<void (size_t current, size_t max, EntryInfo const& entry,
                                             size_t entryCurrent, size_t entryMax)> const& progress);
 
     void extractTo(std::function<bool (const char* filename, std::string& outName)> const& filter,
-                   std::function<void (size_t current, size_t max, FileHandle const& entry,
+                   std::function<void (size_t current, size_t max, EntryInfo const& entry,
                                        size_t entryCurrent, size_t entryMax)> const& progress);
 
 };
